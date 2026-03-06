@@ -1,50 +1,60 @@
-'use client';
-
 import React from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { supabaseUrl, supabaseAnonKey } from '../../lib/supabase';
+import { useAuth } from '../../context/AuthContext';
 
-const TemplatesPage: React.FC = () => {
-  const router = useRouter();
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-  const templates = [
-    {
-      id: 1,
-      name: 'Basic Next.js Configuration',
-      description: 'A simple setup for Next.js applications with essential configurations.',
-    },
-    {
-      id: 2,
-      name: 'E-commerce Setup',
-      description: 'Pre-configured for Next.js applications with integrated Stripe payments.',
-    },
-    {
-      id: 3,
-      name: 'SEO Optimization Template',
-      description: 'Focused on best practices for SEO in Next.js projects.',
-    },
-  ];
+const TemplatePage: React.FC = () => {
+  const { user } = useAuth();
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleTemplateClick = (id: number) => {
-    router.push(`/templates/${id}`);
-  };
+  useEffect(() => {
+    const fetchTemplates = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('templates')
+          .select('*');
+
+        if (error) throw error;
+
+        setTemplates(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTemplates();
+  }, []);
+
+  if (loading) return <div>Loading templates...</div>;
+  if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="p-8">
-      <h1 className="text-4xl font-bold mb-4">Say Goodbye to Configuration Chaos!</h1>
-      <p className="text-lg mb-6">Streamline Your Next.js Projects with ConfigWise!</p>
-      <h2 className="text-2xl font-semibold mb-4">Available Templates</h2>
-      <ul className="space-y-4">
+    <div className="p-4">
+      <h1 className="text-2xl font-bold mb-4">ConfigWise Templates</h1>
+      <h2 className="text-xl font-semibold mb-2">
+        Say Goodbye to Configuration Chaos – Streamline Your Next.js Projects with ConfigWise!
+      </h2>
+      <p className="mb-4">
+        Explore our pre-built templates to simplify setup and enhance your project management.
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
         {templates.map(template => (
-          <li key={template.id} className="border p-4 rounded-lg">
-            <h3 className="text-xl font-semibold cursor-pointer" onClick={() => handleTemplateClick(template.id)}>
-              {template.name}
-            </h3>
-            <p className="text-gray-600">{template.description}</p>
-          </li>
+          <div key={template.id} className="p-4 border rounded shadow">
+            <h3 className="font-bold">{template.title}</h3>
+            <p>{template.description}</p>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };
 
-export default TemplatesPage;
+export default TemplatePage;
