@@ -1,26 +1,21 @@
-const { fontFamily } = require('tailwindcss/defaultTheme');
+const path = require('path');
 
 module.exports = {
   content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
-    './pages/**/*.{js,ts,jsx,tsx}',
-    './public/index.html',
+    path.join(__dirname, 'src/app/**/*.{js,ts,jsx,tsx}'),
+    path.join(__dirname, 'src/components/**/*.{js,ts,jsx,tsx}'),
+    path.join(__dirname, 'src/pages/**/*.{js,ts,jsx,tsx}'),
   ],
   theme: {
     extend: {
       colors: {
-        primary: '#1D4ED8', // Example primary color
-        secondary: '#FBBF24', // Example secondary color
+        primary: '#3B82F6', // Example primary color
+        secondary: '#F97316', // Example secondary color
       },
       fontFamily: {
-        sans: ['Inter', ...fontFamily.sans],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
     },
   },
-  plugins: [
-    require('@tailwindcss/forms'),
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/aspect-ratio'),
-  ],
+  plugins: [],
 };
