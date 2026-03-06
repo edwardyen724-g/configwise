@@ -1,36 +1,19 @@
 import { defineConfig } from 'next';
-import { withSentryConfig } from '@sentry/nextjs';
-import tailwindcss from 'tailwindcss';
-import autoprefixer from 'autoprefixer';
 
-const isProduction = process.env.NODE_ENV === 'production';
-
-const sentryWebpackPluginOptions = {
-  silent: true, // Suppresses all Sentry logs
-};
-
-const config = defineConfig({
+export default defineConfig({
   reactStrictMode: true,
-  swcMinify: true,
+  images: {
+    domains: ['your-image-domain.com'], // Replace with your image domains
+  },
   experimental: {
     appDir: true,
   },
-  images: {
-    domains: ['example.com'], // Replace with your image domains
-  },
-  env: {
+  publicRuntimeConfig: {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    NEXT_PUBLIC_STRIPE_PK: process.env.NEXT_PUBLIC_STRIPE_PK,
+    NEXT_PUBLIC_STRIPE_PUBLIC_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY,
   },
-  future: {
-    webpack5: true,
-  },
-  postcss: {
-    plugins: [tailwindcss, autoprefixer],
+  serverRuntimeConfig: {
+    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
   },
 });
-
-export default isProduction
-  ? withSentryConfig(config, sentryWebpackPluginOptions)
-  : config;
