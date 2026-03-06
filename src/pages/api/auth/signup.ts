@@ -1,5 +1,5 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import { supabase } from '../../../lib/supabaseClient';
+import type { NextApiRequest, NextApiResponse } from 'next';
+import { createClient } from '@supabase/supabase-js';
 
 interface AuthedRequest extends NextApiRequest {
   body: {
@@ -8,40 +8,30 @@ interface AuthedRequest extends NextApiRequest {
   };
 }
 
-const SIGNUP_RATE_LIMIT = 5; // Maximum signups
-const signupAttempts = new Map<string, number>();
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default async function signup(req: AuthedRequest, res: NextApiResponse) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Method Not Allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   const { email, password } = req.body;
-  const clientIp = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
 
   try {
-    if (clientIp && signupAttempts.has(clientIp)) {
-      const attempts = signupAttempts.get(clientIp)!;
-      if (attempts >= SIGNUP_RATE_LIMIT) {
-        return res.status(429).json({ message: 'Too many requests, please try again later.' });
-      }
-    } else {
-      signupAttempts.set(clientIp, 0);
-    }
-
-    const { user, error } = await supabase.auth.signUp({ email, password });
+    const { user, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
     if (error) {
-      return res.status(400).json({ message: error.message });
-    }
-
-    if (clientIp) {
-      signupAttempts.set(clientIp, signupAttempts.get(clientIp)! + 1);
+      return res.status(400).json({ error: error.message });
     }
 
     return res.status(200).json({ user });
-    
   } catch (err) {
-    return res.status(500).json({ message: err instanceof Error ? err.message : String(err) });
+    return res.status(500).json({ error: err instanceof Error ? err.message : String(err) });
   }
 }
